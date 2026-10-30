@@ -318,6 +318,15 @@ p.page-desc{font-size:.93rem;font-weight:500;line-height:1.55;color:var(--text);
 textarea{border:1px solid rgba(255,255,255,.5);border-radius:14px;font-size:.9rem}
 textarea:focus{border-color:var(--rose)}
 
+/* -- Back button (circle icon button from the uploaded layout) -- */
+.top-status-bar.has-back{display:grid;grid-template-columns:44px 1fr 44px;justify-items:center}
+.icon-btn{width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.8);cursor:pointer;display:grid;place-items:center;background:var(--face);box-shadow:5px 5px 12px var(--lo),-5px -5px 12px var(--hi);transition:box-shadow .3s var(--ease),transform .3s var(--ease)}
+.icon-btn.back{justify-self:start}
+.icon-btn::before{content:"";width:20px;height:20px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23826E74' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='15 18 9 12 15 6'/%3E%3C/svg%3E") center/20px no-repeat}
+.icon-btn:active{box-shadow:var(--inset);transform:scale(.94);background:var(--well)}
+.icon-btn:focus-visible{outline:0;box-shadow:5px 5px 12px var(--lo),-5px -5px 12px var(--hi),var(--glow)}
+@media (hover:hover){.icon-btn:hover:not(:active){transform:translateY(-1px)}}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0s!important}
 }
@@ -346,7 +355,7 @@ textarea:focus{border-color:var(--rose)}
 
       <!-- Page 2: PIN -->
       <div class="view" data-s="after" tabindex="-1" inert>
-        <div class="top-status-bar"><div class="pill-badge"><span class="pulse-dot"></span>Passcode check</div></div>
+        <div class="top-status-bar has-back"><button class="icon-btn back" type="button" aria-label="Go back"></button><div class="pill-badge"><span class="pulse-dot"></span>Passcode check</div></div>
         <div class="script-sub">Security key</div>
         <h2 class="page-title">Enter your code</h2>
         <div class="pin" aria-label="3-digit code">
@@ -376,7 +385,7 @@ textarea:focus{border-color:var(--rose)}
 
       <!-- Page 3: Birthday cake -->
       <div class="view" data-s="after" tabindex="-1" inert>
-        <div class="top-status-bar"><div class="pill-badge" style="color:#2F855A"><span class="pulse-dot" style="background:#38A169;box-shadow:0 0 8px #38A169"></span>Unlocked</div></div>
+        <div class="top-status-bar has-back"><button class="icon-btn back" type="button" aria-label="Go back"></button><div class="pill-badge" style="color:#2F855A"><span class="pulse-dot" style="background:#38A169;box-shadow:0 0 8px #38A169"></span>Unlocked</div></div>
         <div class="script-sub">Make a birthday wish</div>
         <h2 class="page-title">Your birthday cake</h2>
         <div class="cake-wrap" id="cw">
@@ -424,7 +433,7 @@ textarea:focus{border-color:var(--rose)}
 
       <!-- Page 4: Birthday hub -->
       <div class="view hub" data-s="after" tabindex="-1" inert>
-        <div class="top-status-bar"><div class="pill-badge"><span class="pulse-dot"></span>Birthday hub</div></div>
+        <div class="top-status-bar has-back"><button class="icon-btn back" type="button" aria-label="Go back"></button><div class="pill-badge"><span class="pulse-dot"></span>Birthday hub</div></div>
         <div class="tabs" role="tablist">
           <button class="tab" role="tab" aria-selected="true" type="button"><b>💌</b>Letter</button>
           <button class="tab" role="tab" aria-selected="false" type="button"><b>📷</b>Pics</button>
@@ -687,6 +696,25 @@ textarea:focus{border-color:var(--rose)}
     setTimeout(() => $('#toHub').classList.add('show'), 2000);
   });
   $('#toHub').addEventListener('click', () => show(3));
+
+  /* ---------- Back button: one page back, resetting what the page left behind ---------- */
+  function resetCake() {
+    cw.className = 'cake-wrap';
+    candleBtn.disabled = false; cakeBtn.disabled = true;
+    hint.textContent = 'Tap the candle to blow it out.';
+    $('#toast').classList.remove('show'); $('#toHub').classList.remove('show');
+    $('.confetti').textContent = '';
+  }
+  function goBack() {
+    if (current === 3) { show(2); return; }
+    if (current === 2) {
+      if (cw.classList.contains('cutting') && !$('#toHub').classList.contains('show')) return;  // let the celebration finish
+      resetCake();
+    }
+    pin = ''; busy = false; pinEl.classList.remove('err', 'shake'); setMsg(IDLE); render();
+    show(current - 1);
+  }
+  document.querySelectorAll('.icon-btn.back').forEach((b) => b.addEventListener('click', goBack));
 
   /* ---------- Page 4: tabs ---------- */
   const tabs = [...document.querySelectorAll('.tab')], panels = [...document.querySelectorAll('.panel')];
